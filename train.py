@@ -42,7 +42,7 @@ def main():
 
     batch_size = 64
     # nw = 0 #windows训练时设置为0
-    nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 1])  #  lunix number of workers
+    nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 4])  #  lunix number of workers
     print('Using {} dataloader workers every process'.format(nw))
 
     train_loader = torch.utils.data.DataLoader(train_dataset,
