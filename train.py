@@ -42,7 +42,7 @@ def main():
 
     batch_size = 64
     # nw = 0 #windows训练时设置为0
-    nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 8])  #  lunix number of workers
+    nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 4])  #  lunix number of workers
     print('Using {} dataloader workers every process'.format(nw))
 
     train_loader = torch.utils.data.DataLoader(train_dataset,
@@ -53,11 +53,15 @@ def main():
                                             transform=data_transform["val"])
     val_num = len(validate_dataset)
     validate_loader = torch.utils.data.DataLoader(validate_dataset,
-                                                  batch_size=4, shuffle=False,
+                                                batch_size=4, shuffle=False,
                                                   num_workers=nw)
 
     print("using {} images for training, {} images for validation.".format(train_num,
                                                                            val_num))
+    with open("trainlog.txt","a") as f:
+        print("using {} images for training, {} images for validation.".format(train_num,
+                                                                           val_num),file=f)
+
     # test_data_iter = iter(validate_loader)
     # test_image, test_label = test_data_iter.next()
     #
@@ -76,7 +80,7 @@ def main():
     # pata = list(net.parameters())
     optimizer = optim.Adam(net.parameters(), lr=0.0002)# 优化器（训练参数，学习率）
     
-    epochs = 10
+    epochs = 50
     save_path = './AlexNet.pth'
     best_acc = 0.0
     train_steps = len(train_loader)
@@ -121,6 +125,9 @@ def main():
         val_accurate = acc / val_num
         print('[epoch %d] train_loss: %.3f  val_accuracy: %.3f' %
               (epoch + 1, running_loss / train_steps, val_accurate))
+        with open("trainlog.txt","a") as f:
+            print('[epoch %d] train_loss: %.3f  val_accuracy: %.3f' % (epoch + 1, running_loss / train_steps, val_accurate),file=f)
+
         # 保存准确率最高的那次网络参数
         if val_accurate > best_acc:
             best_acc = val_accurate
