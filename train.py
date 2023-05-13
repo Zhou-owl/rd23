@@ -42,7 +42,7 @@ def main():
 
     batch_size = 64
     # nw = 0 #windows训练时设置为0
-    nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 4])  #  lunix number of workers
+    nw = min([os.cpu_count(), batch_size if batch_size > 1 else 0, 1])  #  lunix number of workers
     print('Using {} dataloader workers every process'.format(nw))
 
     train_loader = torch.utils.data.DataLoader(train_dataset,
@@ -94,7 +94,11 @@ def main():
         for step, data in enumerate(train_bar): # 遍历训练集，step从0开始计算
             images, labels = data   # 获取训练集的图像和标签
             optimizer.zero_grad()	# 清除历史梯度
-            outputs = net(images.to(device))
+            mid,outputs = net(images.to(device))  #64*512, 64*5
+            features = mid.detach().cpu().numpy() #64*512
+            sm = torch.nn.Softmax(dim=1)
+            confidence = sm(outputs).detach().cpu().numpy() #64*5
+            train_pred_label = torch.max(outputs, dim=1)[1].detach().cpu().numpy() #64
             loss = loss_function(outputs, labels.to(device))
             loss = loss.requires_grad_(True)
             loss.backward()
@@ -118,7 +122,7 @@ def main():
             val_bar = tqdm(validate_loader, file=sys.stdout)
             for val_data in val_bar:
                 val_images, val_labels = val_data
-                outputs = net(val_images.to(device))
+                mid, outputs = net(val_images.to(device))
                 predict_y = torch.max(outputs, dim=1)[1]# 以output中值最大位置对应的索引（标签）作为预测输出
                 acc += torch.eq(predict_y, val_labels.to(device)).sum().item()
 

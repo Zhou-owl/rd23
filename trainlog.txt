@@ -1,0 +1,4 @@
+using 3306 images for training, 364 images for validation.
+using 3306 images for training, 364 images for validation.
+using 3306 images for training, 364 images for validation.
+using 3306 images for training, 364 images for validation.

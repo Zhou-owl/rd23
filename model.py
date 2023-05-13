@@ -3,7 +3,7 @@ import torch
 
 
 class AlexNet(nn.Module):
-    def __init__(self, num_classes=1000, init_weights=False):
+    def __init__(self, num_classes=2, init_weights=False):
         super(AlexNet, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(3, 48, kernel_size=11, stride=4, padding=2),  # input[3, 224, 224]  output[48, 55, 55]
@@ -20,23 +20,29 @@ class AlexNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),                  # output[128, 6, 6]
         )
-        self.classifier = nn.Sequential(
+        self.fc = nn.Sequential(
             nn.Dropout(p=0.5),
             nn.Linear(128 * 6 * 6, 2048),
             nn.ReLU(inplace=True),
             nn.Dropout(p=0.5),
-            nn.Linear(2048, 2048),
-            nn.ReLU(inplace=True),
-            nn.Linear(2048, num_classes),
+            nn.Linear(2048, 512),
         )
+
+        self.classifier = nn.Sequential(
+            nn.ReLU(inplace=True),
+            nn.Linear(512, num_classes),
+        )
+        
+            
         if init_weights:
             self._initialize_weights()
 
     def forward(self, x):
         x = self.features(x)
-        x = torch.flatten(x, start_dim=1)
-        x = self.classifier(x)
-        return x
+        x = torch.flatten(x, start_dim=1) #64*4608
+        mid = self.fc(x) #64*512
+        x = self.classifier(mid)
+        return mid, x
 
     def _initialize_weights(self):
         for m in self.modules():
